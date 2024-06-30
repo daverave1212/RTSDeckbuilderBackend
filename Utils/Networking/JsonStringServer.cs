@@ -9,7 +9,7 @@ class JsonStringServer : StringServer {
 	public JsonStringServer(string hostname, int port) : base(hostname, port) { }
 
 	public override void HandleStreamBlocking(NetworkStream tcpStream, StringServerClient stringServerClient) {
-		byte[] buffer = new byte[256];  // Every incoming message will be at most 256 characters long (string). Otherwise it will be split into multiple packets.
+		byte[] buffer = new byte[32];  // Every incoming message will be at most 256 characters long (string). Otherwise it will be split into multiple packets.
 		int readTotal;
 
 		string lastIncompleteJsonPart = "";
@@ -21,11 +21,15 @@ class JsonStringServer : StringServer {
 
 			// Read as many Jsons as you can and save whatever remains trailing in that string
 			// It's possible that multiple requests are needed for one json
-			(string[] fullJsons, string remainder, int nBracketsLeftUnclosed) = Utils.SplitMergedJsonsStringByBraces(message, nIncompleteBraces);
+			(string[] fullJsons, string remainder, int nBracketsLeftUnclosed) = Utils.SplitMergedJsonsStringByBraces(message, lastIncompleteJsonPart, nIncompleteBraces);
 
+
+			Console.WriteLine("Full JSONS:");
 			foreach (var jsonString in fullJsons) {
+				Console.WriteLine("    " + jsonString);
 				stringServerClient.onMessageReceived(jsonString);
 			}
+			Console.WriteLine($"Remainder({nBracketsLeftUnclosed}):\n    " + remainder);
 
 			if (fullJsons.Length == 0) {
 				lastIncompleteJsonPart += remainder;

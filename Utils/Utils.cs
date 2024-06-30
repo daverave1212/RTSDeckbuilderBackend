@@ -61,10 +61,11 @@ public class Utils {
 		return "{\n" + string.Join(",\n", dict.Select(kvp => $"  {kvp.Key}: {kvp.Value}")) + "\n}";
 	}
 
-	public static (string[], string, int) SplitMergedJsonsStringByBraces(string str, int nBracketsLeftOpen=0) { // "{nr:1337}{age:26}"	->	["{nr:1337}", "{age:26}"]
+	public static (string[], string, int) SplitMergedJsonsStringByBraces(string str, string previousRemainder="", int nBracketsLeftOpen=0) { // "{nr:1337}{age:26}"	->	["{nr:1337}", "{age:26}"]
 		List<string> strings = new List<string>();
 		int nBracketsOpen = nBracketsLeftOpen;
 		int jsonStartI = 0;
+		int jsonEndI = 0;
 
 		for (int i = 0; i < str.Length; i++) {
 			if (str[i] == '{') {
@@ -77,17 +78,24 @@ public class Utils {
 			if (str[i] == '}') {
 				nBracketsOpen--;
 				if (nBracketsOpen == 0) {
-					var length = i - jsonStartI + 1;
-					strings.Add(str.Substring(jsonStartI, length));
+					jsonEndI = i;
+					var length = jsonEndI - jsonStartI + 1;
+					var thisSubstring = str.Substring(jsonStartI, length);
+					if (strings.Count == 0) {
+						strings.Add(previousRemainder + thisSubstring);
+					} else {
+						strings.Add(previousRemainder);
+					}
 				}
 			}
 		}
 
-		var remainderLength = str.Length - 1 - jsonStartI + 1;
+		var hasRemainder = jsonEndI < str.Length - 1;
+		var remainderLength = str.Length - 1 - jsonEndI;
 
 		var fullJsonStringParts = strings.ToArray();
 		var nBracketsLeftUnclosed = nBracketsOpen;
-		var incompleteJsonRemainder = str.Substring(jsonStartI, remainderLength);
+		var incompleteJsonRemainder = hasRemainder == false? "" : str.Substring(jsonEndI + 1, remainderLength);
 
 		return (fullJsonStringParts, incompleteJsonRemainder, nBracketsLeftUnclosed);
 	}
