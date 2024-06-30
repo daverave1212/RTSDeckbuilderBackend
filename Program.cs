@@ -6,24 +6,10 @@ public class Program {
 	static void Main(string[] args) {
 		Console.WriteLine("MAIN");
 
-		var liveGame = new LiveGame(null);
-		var unit = new UnitRep(liveGame);
+		var gameServer = new GameServer();
+		gameServer.StartServerAndDontWait();
+		gameServer.CreateLiveGame("asdf");
 
-		string json = @"
-        [
-            { ""token"": ""abc123"", ""data"": ""John Doe"" },
-            { ""token"": ""def456"", ""data"": ""Jane Smith"" }
-        ]";
-
-		using (JsonDocument doc = JsonDocument.Parse(json)) {
-			JsonElement jsonElement = doc.RootElement;
-
-			var token = jsonElement.GetProperty("token").GetString();
-			var name = jsonElement.GetProperty("name").GetString();
-
-			Console.WriteLine(token);
-			Console.WriteLine(name);
-		}
 
 		while (true) { }
 	}

@@ -6,34 +6,36 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
-public class GameServer {
+public partial class GameServer {
 
 	List<ServerPlayer> playersConnected;
-	List<LiveGame> liveGames;
+	Dictionary<string, LiveGame> liveGames;
 
 	public GameServer() {
 		playersConnected = new List<ServerPlayer>();
-		liveGames = new List<LiveGame>();
-
-		liveGames.Add(new LiveGame("asdf1234"));
+		liveGames = new Dictionary<string, LiveGame>();
 	}
 
-	public void StartServer() {
+	public void StartServerAndWait() {
+		StartServerAndDontWait();
+		while (true) { }
+	}
+	public void StartServerAndDontWait() {
 		var server = new StringServer("127.0.0.1", 8080);
 
 		server.OnClientConnectedAsync(xServerClient => {
 
-			var serverPlayer = new ServerPlayer(); 
+			var serverPlayer = new ServerPlayer(str => {
+				xServerClient.SendMessage(str);
+			});
 
 			xServerClient.OnMessageReceived(str => {
 				if (Utils.LooksLikeJson(str) == false) {
-					Error();
+					Error($"Message received does not look like JSON: {str}");
 					return;
 				}
-				using (JsonDocument jsonDocument = JsonDocument.Parse(str)) {
-
-				}
-
+				var commandDto = JsonSerializer.Deserialize<CommandDto>(str);
+				serverPlayer.OnReceiveCommand(commandDto);
 			});
 		});
 
@@ -42,14 +44,22 @@ public class GameServer {
 		});
 
 		server.StartAsync();
-
-		while (true) { }
 	}
 
-	public void Error(string msg="") {
-		Console.WriteLine("ERROR: " + msg);
+	public string CreateLiveGame(string id="") {
+		if (id == "") {
+			id = Guid.NewGuid().ToString("N");
+		}
+		var newLiveGame = new LiveGame(id);
+		liveGames[id] = newLiveGame;
+		Console.WriteLine($"Created new LiveGame with id={id}");
+		return id;
 	}
-
 }
 
 
+public partial class GameServer {
+	public void Error(string msg = "") {
+		Console.WriteLine("ERROR: " + msg);
+	}
+}

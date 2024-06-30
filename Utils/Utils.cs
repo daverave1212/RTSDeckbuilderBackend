@@ -2,7 +2,7 @@
 
 public class Utils {
 
-
+	// Array
 	public static void InsertInOrderedQueue<T>(List<T> queue, T elem, Func<T, float> getValueFunc) {
 		if (queue.Count == 0) {
 			queue.Add(elem);
@@ -28,6 +28,10 @@ public class Utils {
 		}
 	}
 
+
+
+
+	// Async
 	public static async Task DoEveryAsync(int milliseconds, Action action, CancellationToken cancellationToken = default) {
 		var timeSpan = TimeSpan.FromMilliseconds(milliseconds);
 		using PeriodicTimer timer = new PeriodicTimer(timeSpan);
@@ -37,11 +41,14 @@ public class Utils {
 		}
 	}
 
+
+
+	// String
 	public static bool LooksLikeJson(string str) {
 		if (str == null)
 			return false;
 		var trimmedStr = str.Trim();
-		if (str.Length < 2) {
+		if (trimmedStr.Length < 2) {
 			return false;
 		}
 		if (trimmedStr[0] == '{' && trimmedStr[trimmedStr.Length - 1] == '}') {
@@ -49,4 +56,10 @@ public class Utils {
 		}
 		return false;
 	}
+	public static string StringDictToString(Dictionary<string, string> dict) {
+		return "{\n" + string.Join(",\n", dict.Select(kvp => $"  {kvp.Key}: {kvp.Value}")) + "\n}";
+	}
+
+
+
 }
