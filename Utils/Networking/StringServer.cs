@@ -7,7 +7,7 @@ using System.Threading;
 
 
 
-public class StringServer {
+public partial class StringServer {
 
 	public string hostname;
 	public int port;
@@ -48,17 +48,12 @@ public class StringServer {
 			}
 
 			_ = Task.Run(() => {
-				byte[] buffer = new byte[256];  // Every incoming message will be at most 256 characters long (string). Otherwise it will be split into multiple packets.
-
-				var tcpStream = client.GetStream();
-				int readTotal;
-
+				NetworkStream tcpStream = client.GetStream();
+				
 				try {
-					do {
-						readTotal = tcpStream.Read(buffer, 0, buffer.Length);
-						string message = Encoding.UTF8.GetString(buffer, 0, readTotal);
-						stringServerClient.onMessageReceived(message);
-					} while (readTotal != 0);
+
+					HandleStreamBlocking(tcpStream, stringServerClient);
+
 				} catch (System.IO.IOException e) {
 					RemoveXServerClientAsync(stringServerClient);
 					foreach (var callback in onClientDisconnectedListeners) {
@@ -68,6 +63,21 @@ public class StringServer {
 			});
 		}
 	}
+
+	public virtual void HandleStreamBlocking(NetworkStream tcpStream, StringServerClient stringServerClient) {
+		byte[] buffer = new byte[256];  // Every incoming message will be at most 256 characters long (string). Otherwise it will be split into multiple packets.
+		int readTotal;
+
+		do {
+			readTotal = tcpStream.Read(buffer, 0, buffer.Length);
+			string message = Encoding.UTF8.GetString(buffer, 0, readTotal);
+			stringServerClient.onMessageReceived(message);
+		} while (readTotal != 0);
+	}
+
+}
+
+public partial class StringServer {
 
 	async void RememberXServerClientAsync(StringServerClient stringServerClient) {
 		await connectedXClientsSemaphore.WaitAsync();

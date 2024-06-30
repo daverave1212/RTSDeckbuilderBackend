@@ -27,14 +27,51 @@ connectTo(8080, '127.0.0.1', client => {
     client.onReceive(obj => {
         
     })
+    // client.send({name: "Dave"})
+    // client.send({kurwa: "cyka"})
     client.send({
-        name: "HelloWorld",
-        data: [{
-            "data": "Just some data mate",
-            "gorgo": "danc"
-        }]
+        name: "SetUsername",
+        data: [{ "data": "daverave1212" }]
     })
+    client.send({
+        name: "Say",
+        data: [{ "data": "Hello world!" }]
+    })
+    client.send({
+        name: "Say",
+        data: [{ "data": "Hello sevver!" }]
+    })
+    setTimeout(() => {
+        client.send({
+            name: "Say",
+            data: [{ "data": "Apples are awesome!" }]
+        })
+    }, 3500)
+    setTimeout(() => {
+        client.send({
+            name: "Say",
+            data: [{ "data": "Tesla is very cool!" }]
+        })
+    }, 4500)
 })
+
+setTimeout(() => {
+    connectTo(8080, '127.0.0.1', client => {
+        client.onReceive(obj => {
+            
+        })
+        // client.send({name: "Dave"})
+        // client.send({kurwa: "cyka"})
+        client.send({
+            name: "SetUsername",
+            data: [{ "data": "Prangundha" }]
+        })
+        client.send({
+            name: "Say",
+            data: [{ "data": "Sadhanna ho gae?" }]
+        })
+    })
+}, 4000)
 
 
 
