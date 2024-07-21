@@ -5,32 +5,14 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-
-
+// Public API
 public partial class StringServer {
-
-	public string hostname;
-	public int port;
-	public TcpListener tcpListener;
-
-	public readonly SemaphoreSlim connectedXClientsSemaphore = new SemaphoreSlim(1, 1);
-	public List<StringServerClient> connectedXClients = new List<StringServerClient>();
-	List<Action<StringServerClient>> onClientConnectedListeners = new List<Action<StringServerClient>>();
-	List<Action<StringServerClient>> onClientDisconnectedListeners = new List<Action<StringServerClient>>();
-
-	public StringServer(string hostname, int port) {
-		this.hostname = hostname;
-		this.port = port;
-	}
-
-	public void OnClientConnectedAsync(Action<StringServerClient> callback) {		// void(StringServerClient stringServerClient) ... 
+	public void OnClientConnectedAsync(Action<StringServerClient> callback) {       // void(StringServerClient stringServerClient) ... 
 		onClientConnectedListeners.Add(callback);
 	}
-
-	public void OnClientDisonnectedAsync(Action<StringServerClient> callback) {		// void(StringServerClient stringServerClient) ... 
+	public void OnClientDisonnectedAsync(Action<StringServerClient> callback) {     // void(StringServerClient stringServerClient) ... 
 		onClientDisconnectedListeners.Add(callback);
 	}
-
 	public async void StartAsync() {
 		var localhostIP = IPAddress.Parse(hostname); // or IPAddress.Any
 		tcpListener = new TcpListener(IPAddress.Any, port);
@@ -49,7 +31,7 @@ public partial class StringServer {
 
 			_ = Task.Run(() => {
 				NetworkStream tcpStream = client.GetStream();
-				
+
 				try {
 
 					HandleStreamBlocking(tcpStream, stringServerClient);
@@ -63,8 +45,28 @@ public partial class StringServer {
 			});
 		}
 	}
+}
 
-	public virtual void HandleStreamBlocking(NetworkStream tcpStream, StringServerClient stringServerClient) {
+// Implementation
+public partial class StringServer {
+
+	public string hostname;
+	public int port;
+	public TcpListener tcpListener;
+
+	public readonly SemaphoreSlim connectedXClientsSemaphore = new SemaphoreSlim(1, 1);
+	public List<StringServerClient> connectedXClients = new List<StringServerClient>();
+	List<Action<StringServerClient>> onClientConnectedListeners = new List<Action<StringServerClient>>();
+	List<Action<StringServerClient>> onClientDisconnectedListeners = new List<Action<StringServerClient>>();
+
+	public StringServer(string hostname, int port) {
+		this.hostname = hostname;
+		this.port = port;
+	}
+
+
+
+	protected virtual void HandleStreamBlocking(NetworkStream tcpStream, StringServerClient stringServerClient) {
 		byte[] buffer = new byte[256];  // Every incoming message will be at most 256 characters long (string). Otherwise it will be split into multiple packets.
 		int readTotal;
 

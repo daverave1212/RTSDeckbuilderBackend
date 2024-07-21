@@ -1,18 +1,48 @@
 ﻿
+using System.Net.Sockets;
 using System.Text.Json;
 
 public class Program {
-	
+
+	static string HOSTNAME = "127.0.0.1";
+	static int PORT = 5000;
+
+
 	static void Main(string[] args) {
+		//MainServer();
+		MainClient();
+	}
+
+
+
+
+
+	static void MainServer() {
 		Console.WriteLine("MAIN");
 
-		var gameServer = new GameServer();
+		var gameServer = new GameServer(HOSTNAME, PORT);
 		gameServer.StartServerAndDontWait();
 		gameServer.CreateLiveGame("asdf");
 
+		gameServer.OnPlayerConnected(player => {
+			Utils.DoEveryAsync(2000, () => {
+				player.SendCommand(new Command("Message", "You just connected hun"));
+			});
+		});
 
 		while (true) { }
 	}
+
+	static async void MainClient() {
+		var stringClient = new JsonStringClient(Console.WriteLine);
+		stringClient.ConnectAndDontWaitAsync(HOSTNAME, PORT, message => {
+			Console.WriteLine($"Received from server: {message}");
+		});
+
+		while (true) { }
+	}
+
+	
 
 	static void StartMap() {
 		SquareTilePathSubmesh.N_SUBMESHES_PER_TILE = 4;

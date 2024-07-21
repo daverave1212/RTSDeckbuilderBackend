@@ -23,27 +23,31 @@ function connectTo(port, ip, onConnect) {
 
 }
 
-connectTo(8080, '127.0.0.1', client => {
+connectTo(5000, '127.0.0.1', client => {
     client.onReceive(obj => {
-        
-    })
-    // client.send({
-    //     name: "SetUsername",
-    //     data: [{ "data": "daverave1212" }]
-    // })
-    // client.send({
-    //     name: "Say",
-    //     data: [{ "data": "Alo salut" }]
-    // })
-    client.send({
-        name: "Dave",
-        age: 26,
-        computer: "Pentium 2"
+        console.log(obj)
     })
     client.send({
-        ALGORITHM: "NONE",
-        SALT: ":3"
+        name: "SetUsername",
+        data: [{ "data": "daverave1212" }]
     })
+    client.send({
+        name: "Say",
+        data: [{ "data": "gorgodanc" }]
+    })
+    client.send({
+        name: "Say",
+        data: [{ "data": "krantz" }]
+    })
+    // client.send({
+    //     name: "Dave",
+    //     age: 26,
+    //     computer: "Pentium 2"
+    // })
+    // client.send({
+    //     ALGORITHM: "NONE",
+    //     SALT: ":3"
+    // })
     // client.send({
     //     name: "Say",
     //     data: [{ "data": "Hello sevver!" }]

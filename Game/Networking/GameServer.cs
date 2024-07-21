@@ -6,12 +6,20 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
+// After client connected, the client can only send messages that are a Command.cs class object JSON
 public partial class GameServer {
+
+	public string hostname;
+	public int port;
 
 	List<ServerPlayer> playersConnected;
 	Dictionary<string, LiveGame> liveGames;
 
-	public GameServer() {
+	Action<ServerPlayer> onPlayerConnected;
+
+	public GameServer(string hostname, int port) {
+		this.hostname = hostname;
+		this.port = port;
 		playersConnected = new List<ServerPlayer>();
 		liveGames = new Dictionary<string, LiveGame>();
 	}
@@ -21,7 +29,7 @@ public partial class GameServer {
 		while (true) { }
 	}
 	public void StartServerAndDontWait() {
-		var server = new JsonStringServer("127.0.0.1", 8080);
+		var server = new JsonStringServer(hostname, port);
 
 		server.OnClientConnectedAsync(stringServerClient => {
 
@@ -30,8 +38,11 @@ public partial class GameServer {
 
 			stringServerClient.OnMessageReceived(jsonStr => {
 				var commandDto = JsonSerializer.Deserialize<Command>(jsonStr);
+				Console.WriteLine($"Successfully deserialized command: {commandDto.name}");
 				serverPlayer.OnReceiveCommand(commandDto);
 			});
+
+			onPlayerConnected?.Invoke(serverPlayer);
 		});
 
 		server.OnClientDisonnectedAsync(stringServerClient => {
@@ -49,6 +60,9 @@ public partial class GameServer {
 		liveGames[id] = newLiveGame;
 		Console.WriteLine($"Created new LiveGame with id={id}");
 		return id;
+	}
+	public void OnPlayerConnected(Action<ServerPlayer> callback) {
+		onPlayerConnected = callback;
 	}
 }
 

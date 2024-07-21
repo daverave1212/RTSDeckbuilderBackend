@@ -3,8 +3,14 @@ using System.Collections.Generic;
 using System.Text.Json;
 
 public class Command {
+
+
+
 	public string name { get; set; } = "";
 	public Dictionary<string, string>[] data { get; set; }
+
+
+
 
 	// Multiple constructors for easy data providing
 	public Command() { }
@@ -23,6 +29,8 @@ public class Command {
 		this.data = new Dictionary<string, string>[] { dict };
 	}
 
+
+
 	public Dictionary<string, string> GetDict() {
 		if (data == null || data.Length == 0)
 			return null;
@@ -34,6 +42,9 @@ public class Command {
 		return data[0]["data"];
 	}
 
+	public string ToJson() {
+		return JsonSerializer.Serialize(this);
+	}
 	public override string ToString() {
 		string str = $"name: {name}, data: [\n";
 		str += string.Join(",\n", data?.Select(dict => Utils.StringDictToString(dict)));
