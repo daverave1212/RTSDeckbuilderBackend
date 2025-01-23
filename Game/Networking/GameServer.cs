@@ -7,6 +7,15 @@ using System.Text.Json;
 using System.Threading;
 
 // After client connected, the client can only send messages that are a Command.cs class object JSON
+/* Use like:
+
+var gameServer = new GameServer("192.0.0.1", 8080);
+gameServer.OnPlayerConnected(serverPlayer => {
+	Console.WriteLine("Player connected. serverPlayer can now receive commands.");
+});
+gameServer.StartServerAndWait();	// Players can now start connecting to 192.0.0.1:8080
+
+*/
 public partial class GameServer {
 
 	public string hostname;
@@ -47,6 +56,7 @@ public partial class GameServer {
 
 		server.OnClientDisonnectedAsync(stringServerClient => {
 			Console.WriteLine("Client disconnected.");
+			// TODO: Remove player from list
 		});
 
 		server.StartAsync();
