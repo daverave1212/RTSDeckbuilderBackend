@@ -1,0 +1,134 @@
+
+
+class LiveGame:
+
+    List<Unit> units = new List<Unit>()
+
+    void Tick(float deltaTimeMS):
+        foreach(var unit in units) {
+            unit.Tick(deltaTimeMS)
+        }
+
+
+
+class Unit:
+
+    speedPerSecond = 100
+
+    destinationNode
+    nodesToDestination  // Never contains my node
+
+
+
+    Unit(onNode, destinationNode):
+        destinationNode = destinationNode
+        nodesToDestination = AStar(onNode, destinationNode)
+
+    /*
+        [0]     [1]     [2]     [3]     [4]
+        deltaTime = 1000
+        speedPerSecond = 700
+
+        Spawn:
+             v
+            [0]     [1]     [2]     [3]     [4]
+
+            nodesToDestination = [1]     [2]     [3]     [4]
+            upcomingNodes = []
+        
+        T1:
+                  v
+            [0]     [1]     [2]     [3]     [4]
+
+    */
+
+    // TODO: AStar should get the closest node to my position and go from there?
+    void Tick(float deltaTimeMS):
+
+        SetPosition(upcomingPosition)
+
+
+        enemyUnit = GetClosestEnemyUnit()
+
+        if enemyUnit != null:
+            
+            if IsWithinAttackRange(enemyUnit):
+                AttackUnit(enemyUnit)
+            else:
+                nodesToDestination = AStar(my node, destinationNode)
+            
+            else:
+                nodesToDestination = AStar(my node, destinationNode)
+
+        
+
+
+        
+        // upcomingPosition is 100% never changing (to send to client)
+        // nodesThatWillBeTravled might be []
+        (nodesThatWillBeTraveled, upcomingPosition) = PrepareTravelDataWithinDistance(speedPerSecond * deltaTimeMS)
+        nodesToDestination.Remove(nodesThatWillBeTraveled)
+        my node = nodesThatWillBeTraveled.Last
+        // Broadcast all new unit states after Tick
+
+    (Nodes, Point2D) PrepareTravelDataWithinDistance(distanceTraveled):
+        if nodesToDestination.Length == 0:
+            return ([], GetPosition())
+        var distanceToFirstNode = nodesToDestination.First().DistanceTo(GetPosition())
+        if distanceTraveled < distanceToFirstNode:
+            return ([], Lerp(...))
+
+        var nNodesTraveled = 1
+        var distanceLeftToTravel = distanceTraveled - distanceToFirstNode
+        foreach (var node in nodesToDestination - 1):
+            var distanceToNextNode = node.DistanceTo(nextNode)
+            if distanceLeftToTravel > distanceToNextNode:
+                nNodesTraveled++
+                distanceLeftToTravel -= distanceToNextNode
+            else:
+                break
+        
+        var nodesTraveled = nodesToDestination.Take(nNodesTraveled)
+        var finalPosition = Lerp(
+            nodesToDestination[nNodesTraveled - 1],
+            nodesToDestination[nNodesTraveled],
+            distanceLeftToTravel
+        )
+
+        return (nodesTraveled, finalPosition)
+
+
+
+        
+        
+
+
+    void Tick(float deltaTimeMS):
+
+        CalculateNewPosition(nodesToDestination, deltaTimeMS) // Now will be at a new position
+
+        enemyUnit = GetClosestEnemyUnit()
+
+        if enemyUnit != null:
+            
+            if IsInAttackRange(enemyUnit):
+                AttackUnit(enemyUnit)
+            
+            else:
+                nodesToDestination = AStar(my node, enemyUnit.node)
+
+        else:
+            nodesToDestination = AStar(my node, enemyUnit.node)
+
+
+        
+    
+    void CalculateNewPosition(nodesToDestination, deltaTimeMS)
+        
+        if isAnyComingNodeBlocked():
+            nodesToDestination = AStar(my node, destinationNode)
+        
+        totalDistanceToTravel = deltaTimeMS * speedPerSecond
+        nNodesToTravel = int(totalDistanceToTravel / DISTANCE_BETWEEN_NODES)
+
+        my node = nodesToDestination
