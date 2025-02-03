@@ -9,27 +9,30 @@ using System.Threading;
 // After client connected, the client can only send messages that are a Command.cs class object JSON
 /* Use like:
 
-var gameServer = new GameServer("192.0.0.1", 8080);
-gameServer.OnPlayerConnected(serverPlayer => {
+var commandServer = new CommandServer<TCommandServerClient>("127.0.0.1", 5000);
+commandServer.OnPlayerConnected(serverClient => {
 	Console.WriteLine("Player connected. serverPlayer can now receive commands.");
 });
-gameServer.StartServerAndWait();	// Players can now start connecting to 192.0.0.1:8080
+gameServer.StartServerAndWait();
+
+// Players can now start connecting to 127.0.0.1:5000
+// Send a JSON 
 
 */
-public partial class GameServer {
+public partial class CommandServer<TCommandServerClient> where TCommandServerClient : CommandServerClient, new() {
 
 	public string hostname;
 	public int port;
 
-	List<ServerPlayer> playersConnected;
+	List<CommandServerClient> playersConnected;
 	Dictionary<string, LiveGame> liveGames;
 
-	Action<ServerPlayer> onPlayerConnected;
+	Action<CommandServerClient> onPlayerConnected;
 
-	public GameServer(string hostname, int port) {
+	public CommandServer(string hostname, int port) {
 		this.hostname = hostname;
 		this.port = port;
-		playersConnected = new List<ServerPlayer>();
+		playersConnected = new List<CommandServerClient>();
 		liveGames = new Dictionary<string, LiveGame>();
 	}
 
@@ -42,13 +45,15 @@ public partial class GameServer {
 
 		server.OnClientConnectedAsync(stringServerClient => {
 
-			var serverPlayer = new ServerPlayer(sendStringToClient: str => stringServerClient.SendMessage(str));
+			var serverPlayer = new TCommandServerClient();
+			serverPlayer.sendStringToClient = str => stringServerClient.SendMessage(str);
 			playersConnected.Add(serverPlayer);
+
 
 			stringServerClient.OnMessageReceived(jsonStr => {
 				var commandDto = JsonSerializer.Deserialize<Command>(jsonStr);
 				Console.WriteLine($"Successfully deserialized command: {commandDto.name}");
-				serverPlayer.OnReceiveCommand(commandDto);
+				Utils.InterpretCommandForObject<TCommandServerClient>(serverPlayer, commandDto);
 			});
 
 			onPlayerConnected?.Invoke(serverPlayer);
@@ -71,13 +76,13 @@ public partial class GameServer {
 		Console.WriteLine($"Created new LiveGame with id={id}");
 		return id;
 	}
-	public void OnPlayerConnected(Action<ServerPlayer> callback) {
+	public void OnPlayerConnected(Action<CommandServerClient> callback) {
 		onPlayerConnected = callback;
 	}
 }
 
 
-public partial class GameServer {
+public partial class CommandServer {
 	public void Error(string msg = "") {
 		Console.WriteLine("ERROR: " + msg);
 	}

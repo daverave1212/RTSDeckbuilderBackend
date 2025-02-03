@@ -3,7 +3,7 @@
 The server has instances of:
 	Server
 	LiveGame
-	ServerPlayer (interpretor)
+	CommandServerClient (interpretor)
 
 The client has instances of:
 	ClientPlayer (interpretor)
@@ -25,7 +25,7 @@ Command:
 class LiveGame:
 	Player[] players;
 
-ServerPlayer(sendStringCommandToClient):
+CommandServerClient(sendStringCommandToClient):
 	StringServerClient serverClient
 	LiveGame liveGame
 	cardsInHand
@@ -58,7 +58,7 @@ GameServer:
 
 	OnPlayerConnectToServer:
 		remember player
-		all further messages are interpreted by the ServerPlayer object
+		all further messages are interpreted by the CommandServerClient object
 
 		OnMessageReceived(str):
 			Decode the str into a CommandDto and pass it

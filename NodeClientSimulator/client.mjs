@@ -11,8 +11,7 @@ function connectTo(port, ip, onConnect) {
             },
             onReceive: function(callbackOnObj) {
                 client.on('data', data => {
-                    console.log(data)
-                    callbackOnObj(data)
+                    callbackOnObj(data.toString('utf8'))
                 })
             },
             onClose: function(callback) {
